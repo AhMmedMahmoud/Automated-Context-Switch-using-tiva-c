@@ -152,5 +152,5 @@ interrupt
 --------------
 - in arm after executing each instruction, it check if there is interrupt or not
 
-- when interrupt occurs, processor internally push current values of R0, R1, R2, R3, R12, LR, RC+1, PSR
+- when interrupt occurs, processor internally push current values of R0, R1, R2, R3, R12, LR, PC+1, PSR
 */
