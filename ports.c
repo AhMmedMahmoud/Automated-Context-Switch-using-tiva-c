@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 /*********************** functions ****************/
-void portF_init()
+void portF_init(void)
 {
 	/* enable clock for port F */
 	SYSCTL_RCGCGPIO_R |= PORT_F;  

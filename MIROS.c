@@ -2,33 +2,26 @@
 #include "tm4c123gh6pm.h"
 
 
+
+/******* global variables **********/
 OSThread *OS_curr;
 OSThread *OS_next;
 uint32_t tickCount = 0;
-uint8_t flag = 0;
-OSThread *startingTask;
+uint8_t currentNoOfTasks = 0;
+OSThread* tasks[MAXIMUM_NO_OF_TASKS];
 
 
 /****************** OS *************/
-void OS_init()
+void OS_init(void)
 {
-
-	NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R & ~((1<<21 | 1<<22 | 1<<23))) | ((1<<21 | 1<<22 | 1<<23));  // set PendSV interrupt priority (lowest 7) 
+  // set PendSV interrupt priority (lowest 7) 
+	NVIC_SYS_PRI3_R = (NVIC_SYS_PRI3_R & ~((1<<21 | 1<<22 | 1<<23))) | ((1<<21 | 1<<22 | 1<<23));  
 }
 
-void OS_sched()
+void OS_sched(void)
 {
 	/* OS_next = .... */
-	if((tickCount%1 == 0) && flag == 0)
-	{
-		OS_next = startingTask;
-		flag = 1;
-	}
-	else if((tickCount%1 == 0) && flag == 1)
-	{
-		OS_next = ((OSThread *)startingTask)+1;
-		flag = 0;
-	}
+	OS_next = tasks[tickCount%currentNoOfTasks];
 	
 	// force context switching
 	if (OS_next != OS_curr)
@@ -37,7 +30,7 @@ void OS_sched()
 	}
 }
 
-void OSThread_start( 
+void OS_taskStart( 
 	OSThread *me,
 	OSThreadHandler threadHandler,
 	void *stkSto,
@@ -46,8 +39,10 @@ void OSThread_start(
 	uint32_t *sp = (uint32_t *) ((((uint32_t)stkSto + stkSize) / 8) *8);
 	uint32_t *stk_limit;
 	
+	tasks[currentNoOfTasks++] = me;
+	
 	*(--sp) = (1u << 24);   				  	 /* xPSR = 00000001   */
-	*(--sp) = (uint32_t)threadHandler;   /* PC   = 38040000 + 01000000 = 39040000   */
+	*(--sp) = (uint32_t)threadHandler;   /* PC   =            */
 	*(--sp) = 0x0000000EU;    					 /* LR   = 0E000000   */
 	*(--sp) = 0x0000000CU;     					 /* R12  = 0C000000   */
 	*(--sp) = 0x00000003U;    					 /* R3   = 03000000   */
@@ -80,9 +75,10 @@ void OSThread_start(
 	03000000      03000000
 	0C000000      0C000000
 	0E000000      0E000000
-	75030000			93030000
+	PC of T1      PC of T2
 	00000001      00000001
 	*/
+	
 	/* save the top of the stack in the thread's attribure */
 	me->sp = sp;
 	stk_limit = (uint32_t *)(((((uint32_t)stkSto - 1U) / 8) + 1U) * 8);
@@ -92,9 +88,3 @@ void OSThread_start(
 		*sp = 0xDEADBEEFU;
 	}
 }
-
-void OS_start(void *containers)
-{
-	startingTask = (OSThread *)containers;
-}
-		

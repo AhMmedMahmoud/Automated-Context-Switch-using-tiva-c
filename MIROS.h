@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+/*********** macros ****************/
+#define MAXIMUM_NO_OF_TASKS 2
+
 
 /************** structures  **************/
 /* Thread Control Block (TCB) */
@@ -16,13 +19,11 @@ typedef void (*OSThreadHandler)();
 
 
 /************ function prototypes ********/
-void OS_init();
+void OS_init(void);
 
 void OS_sched(void);
 
-void OS_start(void *containers);
-
-void OSThread_start( 
+void OS_taskStart( 
 	OSThread *me,
 	OSThreadHandler threadHandler,
 	void *stkSto,

@@ -10,6 +10,6 @@
 #define PORT_F 0x20
 
 /****** functions prototypes ********/
-void portF_init();
+void portF_init(void);
 
 #endif

@@ -4,6 +4,40 @@
 #include "MIROS.h"
 
 
+/*
+	instruction memory
+	---------
+	instruction1   0x01
+	instruction2   0x02
+	instruction3   0x03
+
+	stack
+	---------
+	0x00
+	0x04
+	0x08
+	0x0c
+	..
+
+	to understand memory in memory view 
+	------------------------------------
+	0x12345678 is stored as 78563412
+
+	interrupt
+	--------------
+	- in arm after executing each instruction, it check if there is interrupt or not
+
+	- when interrupt occurs, processor internally push current values of R0, R1, R2, R3, R12, LR, RC+1, PSR
+	
+	Assumptions
+	--------------------
+	- maximum number of tasks that the our rtos can handle with is determined by macro MAXIMUM_NO_OF_TASKS
+	  defined in MIROS.h
+	
+	- scheduler is round-robin
+*/
+
+
 /********** global variables ********/
 extern uint32_t tickCount;
 
@@ -107,50 +141,18 @@ int main()
 	OS_init();
 	
 	/* fabricate Cortex-M ISR stack frame for task 1 */
-	OSThread_start(&blinky1,              /* container contains sp of task 1 */
+	OS_taskStart(&blinky1,              /* container contains sp of task 1 */
 								&main_blinky1,          /* task 1 function */
 							  stack_blinky1,          /* stack array of task 1 */
 								sizeof(stack_blinky1)   /* size of stack array of task 1 */
 								);
 
 	/* fabricate Cortex-M ISR stack frame for task 1 */
-	OSThread_start(&blinky2,              /* container contains sp of task 2 */
+	OS_taskStart(&blinky2,              /* container contains sp of task 2 */
 								&main_blinky2,          /* task 2 function */
 							  stack_blinky2,          /* stack array of task 2 */
 								sizeof(stack_blinky2)   /* size of stack array of task 2 */
 								);
-	
-	OS_start(&blinky1);								
+								
 	for (;;);
 }
-
-
-
-
-
-
-/*
-instruction memory
----------
-instruction1   0x01
-instruction2   0x02
-instruction3   0x03
-
-stack
----------
-0x00
-0x04
-0x08
-0x0c
-..
-
-to understand memory in memory view 
-------------------------------------
-0x12345678 is stored as 78563412
-
-interrupt
---------------
-- in arm after executing each instruction, it check if there is interrupt or not
-
-- when interrupt occurs, processor internally push current values of R0, R1, R2, R3, R12, LR, PC+1, PSR
-*/
